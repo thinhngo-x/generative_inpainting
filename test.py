@@ -43,10 +43,14 @@ if __name__ == "__main__":
     sess_config.gpu_options.allow_growth = True
     with tf.Session(config=sess_config) as sess:
         input_image = tf.constant(input_image, dtype=tf.float32)
-        output = model.build_server_graph(input_image)
+        output, flow = model.build_server_graph(input_image)
         output = (output + 1.) * 127.5
         output = tf.reverse(output, [-1])
         output = tf.saturate_cast(output, tf.uint8)
+
+        flow = (flow + 1.) * 127.5
+        flow = tf.reverse(flow, [-1])
+        flow = tf.saturate_cast(flow, tf.uint8)
         # load pretrained model
         vars_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
         assign_ops = []
@@ -57,5 +61,6 @@ if __name__ == "__main__":
             assign_ops.append(tf.assign(var, var_value))
         sess.run(assign_ops)
         print('Model loaded.')
-        result = sess.run(output)
+        result, flow = sess.run([output, flow])
         cv2.imwrite(args.output, result[0][:, :, ::-1])
+        cv2.imwrite(args.output.split('.')[0] + '_att.' + args.output.split('.')[1], flow[0][:, :, ::-1])
