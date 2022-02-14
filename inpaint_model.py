@@ -308,4 +308,4 @@ class InpaintCAModel(Model):
         batch_predict = x2
         # apply mask and reconstruct
         batch_complete = batch_predict*masks + batch_incomplete*(1-masks)
-        return batch_complete
+        return batch_complete, flow
